@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: node-registry-migrate
+  labels:
+    app: node-registry-migrate
+spec:
+  # Retries with backoff while PostgreSQL is still starting.
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: node-registry-migrate
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: node-registry:1.0.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-c", "import src.models; from src.database import Base, engine; Base.metadata.create_all(bind=engine)"]
+          envFrom:
+            - configMapRef:
+                name: node-registry-config
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi

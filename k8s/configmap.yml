@@ -1,1 +1,10 @@
-# TODO: ConfigMap with DATABASE_URL
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-registry-config
+  labels:
+    app: node-registry
+data:
+  # No password in the URL: libpq takes it from PGPASSWORD, which comes from the Secret.
+  # The driver is explicit because SQLAlchemy 2.1 maps plain postgresql:// to psycopg 3.
+  DATABASE_URL: postgresql+psycopg2://noderegistry@postgres:5432/noderegistry
